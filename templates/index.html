@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VoyageIntel AI — Travel Intelligence Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"/>
+</head>
+<body>
+
+<!-- ═══════════════════════════  NAVBAR  ═══════════════════════════════════ -->
+<nav class="navbar navbar-expand-lg vi-navbar sticky-top">
+  <div class="container-fluid px-4">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+      <span class="vi-logo-icon"><i class="bi bi-geo-alt-fill"></i></span>
+      <span class="vi-brand-text">Voyage<span class="vi-accent">Intel</span> AI</span>
+    </a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav ms-auto align-items-center gap-1">
+        <li class="nav-item"><a class="nav-link vi-nav-link" href="#" onclick="showSection('chat')"><i class="bi bi-chat-dots me-1"></i>AI Chat</a></li>
+        <li class="nav-item"><a class="nav-link vi-nav-link" href="#" onclick="showSection('planner')"><i class="bi bi-map me-1"></i>Trip Planner</a></li>
+        <li class="nav-item"><a class="nav-link vi-nav-link" href="#" onclick="showSection('dashboard')"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link vi-nav-link" href="#" onclick="showSection('history')"><i class="bi bi-clock-history me-1"></i>History</a></li>
+        <li class="nav-item ms-2">
+          <button class="btn vi-btn-accent btn-sm" onclick="showSection('planner')">
+            <i class="bi bi-plus-circle me-1"></i>New Trip
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════  HERO SECTION  ══════════════════════════════════ -->
+<section id="hero-section" class="vi-hero d-flex align-items-center">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <div class="vi-hero-badge mb-3"><i class="bi bi-stars me-1"></i>Powered by IBM Watsonx.ai · Granite</div>
+        <h1 class="vi-hero-title">Your AI-Powered<br><span class="vi-accent">Travel Intelligence</span><br>Companion</h1>
+        <p class="vi-hero-sub mt-3">
+          Plan hyper-personalized itineraries, optimize routes, score feasibility, and download
+          professional travel guides — all driven by elite AI logistics intelligence.
+        </p>
+        <div class="d-flex flex-wrap gap-3 mt-4">
+          <button class="btn vi-btn-accent btn-lg" onclick="showSection('chat')">
+            <i class="bi bi-chat-dots me-2"></i>Start AI Chat
+          </button>
+          <button class="btn vi-btn-outline btn-lg" onclick="showSection('planner')">
+            <i class="bi bi-map me-2"></i>Build Itinerary
+          </button>
+        </div>
+        <!-- Quick-start template chips -->
+        <div class="vi-chip-row mt-4" id="hero-chips">
+          {% for t in templates %}
+          <button class="vi-chip" onclick="loadTemplate('{{ t.id }}')">
+            {{ t.icon }} {{ t.label }}
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-lg-5 d-none d-lg-flex justify-content-center">
+        <div class="vi-hero-globe">
+          <div class="vi-globe-ring vi-ring-1"></div>
+          <div class="vi-globe-ring vi-ring-2"></div>
+          <div class="vi-globe-ring vi-ring-3"></div>
+          <div class="vi-globe-core"><i class="bi bi-globe-americas"></i></div>
+          <div class="vi-orbit-dot vi-dot-1"></div>
+          <div class="vi-orbit-dot vi-dot-2"></div>
+          <div class="vi-orbit-dot vi-dot-3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════  AI CHAT SECTION  ══════════════════════════════ -->
+<section id="chat-section" class="vi-section d-none">
+  <div class="container-fluid px-4">
+    <div class="row g-4">
+      <!-- Chat Panel -->
+      <div class="col-xl-8">
+        <div class="vi-card h-100 d-flex flex-column">
+          <div class="vi-card-header">
+            <span><i class="bi bi-robot me-2 vi-accent"></i>VoyageIntel AI Chat</span>
+            <div class="d-flex gap-2">
+              <span id="ai-status" class="vi-status-badge vi-status-ready"><i class="bi bi-circle-fill me-1"></i>Ready</span>
+              <button class="btn btn-sm vi-btn-ghost" onclick="clearChat()" title="Clear conversation">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          </div>
+          <!-- Message window -->
+          <div id="chat-window" class="vi-chat-window flex-grow-1">
+            <div class="vi-msg vi-msg-bot">
+              <div class="vi-msg-avatar"><i class="bi bi-robot"></i></div>
+              <div class="vi-msg-bubble">
+                <p class="mb-1">Welcome to <strong>VoyageIntel AI</strong> — your elite travel intelligence consultant.</p>
+                <p class="mb-2">I can design complex, hyper-personalized itineraries for any travel style, budget, or group composition. Just describe your trip in natural language, or pick a quick-start template below:</p>
+                <div class="vi-chip-row" id="chat-chips"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Input bar -->
+          <div class="vi-chat-input-bar">
+            <textarea id="chat-input" class="vi-textarea" rows="2"
+              placeholder="Describe your trip... e.g. Plan a 3-day budget road trip from Pune to Goa for 3 students..."></textarea>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <div class="d-flex gap-2">
+                <select id="region-select" class="vi-select-sm">
+                  <option value="india">🇮🇳 India</option>
+                  <option value="europe">🇪🇺 Europe</option>
+                  <option value="asia">🌏 Asia</option>
+                  <option value="americas">🌎 Americas</option>
+                </select>
+              </div>
+              <div class="d-flex gap-2">
+                <span id="token-counter" class="vi-muted-sm"></span>
+                <button class="btn vi-btn-accent" id="send-btn" onclick="sendMessage()">
+                  <i class="bi bi-send-fill me-1"></i>Send
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Trip Metrics Sidebar -->
+      <div class="col-xl-4">
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="vi-metric-card">
+              <div class="vi-metric-label"><i class="bi bi-bar-chart-line me-1"></i>Feasibility Score</div>
+              <div class="vi-metric-value" id="metric-feasibility">—</div>
+              <div class="vi-metric-bar"><div class="vi-metric-fill" id="metric-feasibility-bar" style="width:0%"></div></div>
+              <div class="vi-metric-sub">Score interpretation will appear after itinerary generation</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="vi-metric-card">
+              <div class="vi-metric-label"><i class="bi bi-heart-pulse me-1"></i>Avg. Comfort Weight</div>
+              <div class="vi-metric-value vi-accent" id="metric-comfort">—</div>
+              <div class="vi-metric-bar"><div class="vi-metric-fill vi-fill-accent" id="metric-comfort-bar" style="width:0%"></div></div>
+              <div class="vi-metric-sub">Aggregated across all itinerary days</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="vi-stat-card">
+              <div class="vi-stat-icon"><i class="bi bi-calendar3"></i></div>
+              <div class="vi-stat-val" id="stat-days">—</div>
+              <div class="vi-stat-label">Days</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="vi-stat-card">
+              <div class="vi-stat-icon"><i class="bi bi-people-fill"></i></div>
+              <div class="vi-stat-val" id="stat-group">—</div>
+              <div class="vi-stat-label">Travellers</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="vi-card p-3">
+              <div class="vi-card-micro-label mb-2"><i class="bi bi-cloud-sun me-1"></i>Regional Climate Panel</div>
+              <div id="climate-panel" class="vi-climate-grid">
+                <div class="vi-climate-item"><span class="vi-climate-icon vi-clim-good">●</span><span>Optimal Season</span><span class="ms-auto vi-muted-sm" id="clim-season">—</span></div>
+                <div class="vi-climate-item"><span class="vi-climate-icon vi-clim-warn">●</span><span>Weather Risk</span><span class="ms-auto vi-muted-sm" id="clim-risk">—</span></div>
+                <div class="vi-climate-item"><span class="vi-climate-icon vi-clim-info">●</span><span>Crowd Index</span><span class="ms-auto vi-muted-sm" id="clim-crowd">—</span></div>
+                <div class="vi-climate-item"><span class="vi-climate-icon vi-clim-good">●</span><span>Best Window</span><span class="ms-auto vi-muted-sm" id="clim-window">—</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════  TRIP PLANNER SECTION  ═══════════════════════════ -->
+<section id="planner-section" class="vi-section d-none">
+  <div class="container">
+    <div class="vi-section-title text-center mb-5">
+      <h2><i class="bi bi-map vi-accent me-2"></i>Trip Planner</h2>
+      <p class="vi-muted">Fill in your trip parameters for a precision-structured itinerary matrix.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="vi-card">
+          <div class="vi-card-header"><span><i class="bi bi-sliders me-2 vi-accent"></i>Trip Parameters</span></div>
+          <div class="p-4">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="vi-label">Origin City</label>
+                <input type="text" id="p-origin" class="vi-input" placeholder="e.g. Mumbai"/>
+              </div>
+              <div class="col-md-6">
+                <label class="vi-label">Destination <span class="vi-accent">*</span></label>
+                <input type="text" id="p-dest" class="vi-input" placeholder="e.g. Goa"/>
+              </div>
+              <div class="col-md-4">
+                <label class="vi-label">Duration (Days)</label>
+                <input type="number" id="p-days" class="vi-input" value="3" min="1" max="30"/>
+              </div>
+              <div class="col-md-4">
+                <label class="vi-label">Group Size</label>
+                <input type="number" id="p-group" class="vi-input" value="2" min="1" max="50"/>
+              </div>
+              <div class="col-md-4">
+                <label class="vi-label">Budget (Total)</label>
+                <input type="text" id="p-budget" class="vi-input" placeholder="e.g. 15000"/>
+              </div>
+              <div class="col-md-4">
+                <label class="vi-label">Currency</label>
+                <select id="p-currency" class="vi-input">
+                  <option value="₹">₹ INR</option>
+                  <option value="$">$ USD</option>
+                  <option value="€">€ EUR</option>
+                  <option value="£">£ GBP</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="vi-label">Travel Persona</label>
+                <select id="p-persona" class="vi-input">
+                  <option value="backpacker">🎒 Backpacker</option>
+                  <option value="luxury">🥂 Luxury</option>
+                  <option value="adventure">🧗 Adventure</option>
+                  <option value="family">👨‍👩‍👧 Family</option>
+                  <option value="corporate">💼 Corporate</option>
+                  <option value="eco_tourism">🌿 Eco-Tourism</option>
+                  <option value="solo_backpacker">🚂 Solo Backpacker</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="vi-label">Optimisation Mode</label>
+                <select id="p-optmode" class="vi-input">
+                  <option value="balanced">⚖️ Balanced</option>
+                  <option value="minimize_transit_time">⚡ Min Transit Time</option>
+                  <option value="maximize_local_sightseeing">🔭 Max Sightseeing</option>
+                  <option value="cost_efficient_route">💰 Cost Efficient</option>
+                  <option value="comfort_first">🛋️ Comfort First</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="vi-label">Travel Dates (optional)</label>
+                <input type="text" id="p-dates" class="vi-input" placeholder="e.g. 15–18 Dec 2025"/>
+              </div>
+              <div class="col-md-6">
+                <label class="vi-label">Region Context</label>
+                <select id="p-region" class="vi-input">
+                  <option value="india">🇮🇳 India</option>
+                  <option value="europe">🇪🇺 Europe</option>
+                  <option value="asia">🌏 Asia</option>
+                  <option value="americas">🌎 Americas</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="vi-label">Special Preferences</label>
+                <textarea id="p-prefs" class="vi-input" rows="2" placeholder="Street food, adventure sports, heritage sites, no flying…"></textarea>
+              </div>
+              <div class="col-12">
+                <label class="vi-label">Constraints / Accessibility Needs</label>
+                <textarea id="p-constraints" class="vi-input" rows="2" placeholder="Wheelchair access, no alcohol, halal food, low walking tolerance…"></textarea>
+              </div>
+              <div class="col-12 d-flex gap-3 mt-2">
+                <button class="btn vi-btn-accent" id="generate-btn" onclick="generateItinerary()">
+                  <i class="bi bi-magic me-2"></i>Generate Itinerary
+                </button>
+                <button class="btn vi-btn-outline" onclick="clearPlanner()">
+                  <i class="bi bi-x-circle me-1"></i>Clear
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Quick Templates Sidebar -->
+      <div class="col-lg-4">
+        <div class="vi-card h-100">
+          <div class="vi-card-header"><span><i class="bi bi-lightning-charge me-2 vi-accent"></i>Quick Templates</span></div>
+          <div class="p-3">
+            <div class="vi-template-list" id="template-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Itinerary Output -->
+    <div id="itinerary-output" class="mt-4 d-none">
+      <div class="vi-card">
+        <div class="vi-card-header">
+          <span><i class="bi bi-journal-richtext me-2 vi-accent"></i>Generated Itinerary</span>
+          <div class="d-flex gap-2" id="itinerary-actions"></div>
+        </div>
+        <div class="p-4">
+          <!-- Metric cards row -->
+          <div class="row g-3 mb-4" id="itin-metrics"></div>
+          <!-- Formatted content -->
+          <div id="itinerary-content" class="vi-itinerary-body"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════  DASHBOARD SECTION  ══════════════════════════════ -->
+<section id="dashboard-section" class="vi-section d-none">
+  <div class="container">
+    <div class="vi-section-title text-center mb-5">
+      <h2><i class="bi bi-speedometer2 vi-accent me-2"></i>Travel Logistics Dashboard</h2>
+      <p class="vi-muted">Visual analytics for your generated trip — route pacing, cost spreads, and transit ratios.</p>
+    </div>
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4" id="dash-stats-row">
+      <div class="col-sm-6 col-xl-3">
+        <div class="vi-stat-card vi-stat-card-lg">
+          <div class="vi-stat-icon vi-icon-red"><i class="bi bi-geo-alt"></i></div>
+          <div class="vi-stat-val" id="dash-dest">—</div>
+          <div class="vi-stat-label">Destination</div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="vi-stat-card vi-stat-card-lg">
+          <div class="vi-stat-icon"><i class="bi bi-calendar-check"></i></div>
+          <div class="vi-stat-val" id="dash-days">—</div>
+          <div class="vi-stat-label">Total Days</div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="vi-stat-card vi-stat-card-lg">
+          <div class="vi-stat-icon vi-icon-green"><i class="bi bi-currency-rupee"></i></div>
+          <div class="vi-stat-val" id="dash-budget">—</div>
+          <div class="vi-stat-label">Budget</div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="vi-stat-card vi-stat-card-lg">
+          <div class="vi-stat-icon vi-icon-blue"><i class="bi bi-people"></i></div>
+          <div class="vi-stat-val" id="dash-group">—</div>
+          <div class="vi-stat-label">Travellers</div>
+        </div>
+      </div>
+    </div>
+    <!-- Charts Row -->
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="vi-card">
+          <div class="vi-card-header"><span><i class="bi bi-pie-chart me-2 vi-accent"></i>Budget Distribution</span></div>
+          <div class="p-3 d-flex justify-content-center">
+            <canvas id="budgetChart" height="260"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="vi-card">
+          <div class="vi-card-header"><span><i class="bi bi-bar-chart me-2 vi-accent"></i>Daily Comfort Weight</span></div>
+          <div class="p-3">
+            <canvas id="comfortChart" height="260"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-12">
+        <div class="vi-card">
+          <div class="vi-card-header"><span><i class="bi bi-graph-up me-2 vi-accent"></i>Transit Cost vs. Time Ratio</span></div>
+          <div class="p-3">
+            <canvas id="transitChart" height="150"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Daily Timeline -->
+    <div class="vi-card mt-4">
+      <div class="vi-card-header"><span><i class="bi bi-list-timeline me-2 vi-accent"></i>Day-by-Day Timeline</span></div>
+      <div class="p-4" id="timeline-container">
+        <p class="vi-muted text-center">Generate an itinerary to populate the dashboard.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════  HISTORY SECTION  ══════════════════════════════ -->
+<section id="history-section" class="vi-section d-none">
+  <div class="container">
+    <div class="vi-section-title text-center mb-5">
+      <h2><i class="bi bi-clock-history vi-accent me-2"></i>Trip History Timeline</h2>
+      <p class="vi-muted">Your saved itineraries — view, re-export, or delete previous trips.</p>
+    </div>
+    <div class="d-flex justify-content-end mb-3">
+      <button class="btn vi-btn-ghost btn-sm" onclick="clearAllHistory()">
+        <i class="bi bi-trash3 me-1"></i>Clear All History
+      </button>
+    </div>
+    <div id="history-container">
+      <div class="text-center vi-muted py-5" id="history-empty">
+        <i class="bi bi-journal-x display-4 d-block mb-3 vi-accent"></i>
+        No trips in history yet. Generate your first itinerary to get started!
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════  LOADING OVERLAY  ════════════════════════════ -->
+<div id="loading-overlay" class="vi-loading-overlay d-none">
+  <div class="vi-loading-content">
+    <div class="vi-spinner"></div>
+    <p id="loading-msg" class="vi-loading-msg">Processing your travel request...</p>
+    <p class="vi-muted-sm">IBM Watsonx.ai · Granite is analyzing your parameters</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════  TOAST CONTAINER  ════════════════════════════ -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
+
+<!-- ═══════════════════════════════  FOOTER  ════════════════════════════════ -->
+<footer class="vi-footer mt-5">
+  <div class="container text-center">
+    <div class="vi-footer-brand mb-2">
+      <i class="bi bi-geo-alt-fill vi-accent me-1"></i>
+      Voyage<span class="vi-accent">Intel</span> AI
+    </div>
+    <p class="vi-muted-sm">Powered by IBM Watsonx.ai · Granite Foundation Models · Flask · Bootstrap 5</p>
+    <p class="vi-muted-sm">© 2025 VoyageIntel AI — Elite Travel Intelligence Platform</p>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════  SCRIPTS  ════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<!-- Inline template data from Flask -->
+<script>
+  window.VI_TEMPLATES = {{ templates | tojson }};
+</script>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+</body>
+</html>
