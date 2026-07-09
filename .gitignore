@@ -1,0 +1,23 @@
+# Secret Environment Variables (NEVER UPLOAD THESE)
+.env
+project.env
+*.env
+
+# Python Virtual Environments
+venv/
+.venv/
+env/
+Scripts/
+
+# Python Cache (The messy hidden files)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
+logs/
+
+# VS Code Settings
+.vscode/
